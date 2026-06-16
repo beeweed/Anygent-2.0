@@ -1,5 +1,4 @@
-export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL as string
+const configuredBackendUrl = import.meta.env.VITE_BACKEND_URL?.trim()
 
-if (!BACKEND_URL) {
-  throw new Error('VITE_BACKEND_URL is required in frontend/.env')
-}
+export const BACKEND_URL = configuredBackendUrl ? configuredBackendUrl.replace(/\/$/, '') : ''
+export const API_BASE_PATH = `${BACKEND_URL}/api`

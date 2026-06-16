@@ -120,7 +120,10 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
                     <ul className="mt-3 space-y-2 text-zinc-400">
                       <li>Sandbox is created automatically on the first chat message.</li>
                       <li>Sandbox timeout is fixed to 1 hour.</li>
-                      <li>Backend URL is sourced only from <code className="font-mono text-zinc-200">frontend/.env</code>.</li>
+                      <li>
+                        If <code className="font-mono text-zinc-200">VITE_BACKEND_URL</code> is unset, development requests use the Vite
+                        <code className="ml-1 font-mono text-zinc-200">/api</code> proxy to reach the local backend.
+                      </li>
                     </ul>
                   </div>
                 </section>

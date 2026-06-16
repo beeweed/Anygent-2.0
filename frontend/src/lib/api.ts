@@ -1,4 +1,4 @@
-import { BACKEND_URL } from './config'
+import { API_BASE_PATH } from './config'
 import type { FileNode } from '@/types/files'
 import type { ModelSummary, ProviderSettings } from '@/types/settings'
 
@@ -25,7 +25,7 @@ function mapOpenRouterModels(payload: { data?: Array<Record<string, unknown>> })
 }
 
 export async function fetchHealth() {
-  const response = await fetch(`${BACKEND_URL}/api/health`)
+  const response = await fetch(`${API_BASE_PATH}/health`)
   if (!response.ok) {
     throw new Error('Backend health check failed')
   }
@@ -34,7 +34,7 @@ export async function fetchHealth() {
 
 export async function fetchOpenRouterModels(apiKey: string) {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/providers/openrouter/models`, {
+    const response = await fetch(`${API_BASE_PATH}/providers/openrouter/models`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ apiKey }),
@@ -67,7 +67,7 @@ export async function fetchOpenRouterModels(apiKey: string) {
 }
 
 export async function fetchFileTree(sessionId: string) {
-  const response = await fetch(`${BACKEND_URL}/api/sessions/${sessionId}/files`)
+  const response = await fetch(`${API_BASE_PATH}/sessions/${sessionId}/files`)
   if (!response.ok) {
     throw new Error('Unable to load file tree')
   }
@@ -75,7 +75,7 @@ export async function fetchFileTree(sessionId: string) {
 }
 
 export async function fetchFileContent(sessionId: string, path: string) {
-  const response = await fetch(`${BACKEND_URL}/api/sessions/${sessionId}/file-content`, {
+  const response = await fetch(`${API_BASE_PATH}/sessions/${sessionId}/file-content`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ path }),
@@ -88,7 +88,7 @@ export async function fetchFileContent(sessionId: string, path: string) {
 }
 
 export function buildStreamUrl() {
-  return `${BACKEND_URL}/api/chat/stream`
+  return `${API_BASE_PATH}/chat/stream`
 }
 
 export type ChatPayload = {

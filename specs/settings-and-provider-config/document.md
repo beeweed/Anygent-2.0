@@ -17,7 +17,8 @@ Provide a settings surface where users can configure OpenRouter and E2B credenti
 ## User flows / UX / design notes
 - User opens settings from header.
 - User enters OpenRouter API key and saves.
-- Frontend requests backend model listing endpoint using the provided key.
+- Frontend requests the backend model listing endpoint using the provided key.
+- In local/Codespaces development, the frontend can call relative `/api/...` routes and rely on the Vite proxy to forward requests to `http://localhost:8000`.
 - Models load into a searchable/selectable list.
 - User enters E2B API key and optional template id.
 - Saved settings are reflected immediately in the chat readiness state.
@@ -25,6 +26,7 @@ Provide a settings surface where users can configure OpenRouter and E2B credenti
 
 ## Functional requirements
 - Settings fields: OpenRouter API key, selected provider, selected model, E2B API key, E2B template id, sandbox timeout display, backend status readout.
+- Frontend API helpers must support both an optional `VITE_BACKEND_URL` override and a default relative `/api` base path for proxied development.
 - Model list must be fetched from OpenRouter using the provided key and handled for loading, success, and failure states.
 - Architecture must allow adding new providers by implementing a provider adapter contract.
 - Persist settings to localStorage and hydrate on app load.

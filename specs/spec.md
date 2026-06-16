@@ -35,7 +35,7 @@ Build a production-grade autonomous coding agent web application that uses OpenR
 - Tool execution is sequential and each result is fed back to the model before continuing.
 - Max iteration per user message is 1000 and resets each turn.
 - Full conversation memory for the current session must include raw message roles and tool events with no truncation logic in the app layer.
-- Backend URL for frontend must only come from `frontend/.env`.
+- Frontend API traffic should prefer relative `/api` paths during local/Codespaces development and use the Vite dev proxy to reach `http://localhost:8000`; `VITE_BACKEND_URL` remains an optional override for non-proxied environments.
 
 ## Feature list
 | Feature | Status | Spec |

@@ -1,0 +1,7 @@
+{
+  "name": "anygent-2.0",
+  "private": true,
+  "scripts": {
+    "build:local": "cd frontend && bun run build:local"
+  }
+}
