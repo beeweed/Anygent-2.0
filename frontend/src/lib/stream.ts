@@ -1,4 +1,5 @@
-import { buildStreamUrl, type ChatPayload } from './api'
+import { getApiBaseCandidates, API_BASE_PATH } from './config'
+import type { ChatPayload } from './api'
 
 export type ParsedEvent = {
   event: string
@@ -29,15 +30,29 @@ function parseEventBlock(block: string): ParsedEvent | null {
   }
 }
 
+async function createStreamResponse(payload: ChatPayload) {
+  let lastError: Error | null = null
+
+  for (const basePath of getApiBaseCandidates()) {
+    try {
+      return await fetch(`${basePath}/chat/stream`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error))
+    }
+  }
+
+  throw new Error(lastError?.message || `Streaming request failed for ${API_BASE_PATH}/chat/stream`)
+}
+
 export async function streamChat(
   payload: ChatPayload,
   onEvent: (event: ParsedEvent) => void,
 ) {
-  const response = await fetch(buildStreamUrl(), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  })
+  const response = await createStreamResponse(payload)
 
   if (!response.ok || !response.body) {
     const error = await response.text()

@@ -1,6 +1,13 @@
-import { API_BASE_PATH } from './config'
+import { API_BASE_PATH, getApiBaseCandidates } from './config'
 import type { FileNode } from '@/types/files'
 import type { ModelSummary, ProviderSettings } from '@/types/settings'
+
+class ApiNetworkError extends Error {
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options)
+    this.name = 'ApiNetworkError'
+  }
+}
 
 function mapOpenRouterModels(payload: { data?: Array<Record<string, unknown>> }): { data: ModelSummary[] } {
   return {
@@ -24,29 +31,66 @@ function mapOpenRouterModels(payload: { data?: Array<Record<string, unknown>> })
   }
 }
 
+function isJsonResponse(response: Response) {
+  return response.headers.get('content-type')?.includes('application/json') ?? false
+}
+
+async function readErrorMessage(response: Response, fallbackMessage: string) {
+  if (isJsonResponse(response)) {
+    const payload = (await response.json().catch(() => null)) as { detail?: unknown; message?: unknown } | null
+    const detail = payload?.detail ?? payload?.message
+
+    if (typeof detail === 'string' && detail.trim()) {
+      return detail
+    }
+  }
+
+  const text = await response.text().catch(() => '')
+  return text.trim() || fallbackMessage
+}
+
+async function fetchFromApi(path: string, init?: RequestInit) {
+  let lastError: Error | null = null
+
+  for (const basePath of getApiBaseCandidates()) {
+    try {
+      return await fetch(`${basePath}${path}`, init)
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error))
+    }
+  }
+
+  throw new ApiNetworkError(lastError?.message || `Request failed for ${path}`, {
+    cause: lastError ?? undefined,
+  })
+}
+
 export async function fetchHealth() {
-  const response = await fetch(`${API_BASE_PATH}/health`)
+  const response = await fetchFromApi('/health')
   if (!response.ok) {
-    throw new Error('Backend health check failed')
+    throw new Error(await readErrorMessage(response, 'Backend health check failed'))
   }
   return response.json() as Promise<{ status: string }>
 }
 
 export async function fetchOpenRouterModels(apiKey: string) {
   try {
-    const response = await fetch(`${API_BASE_PATH}/providers/openrouter/models`, {
+    const response = await fetchFromApi('/providers/openrouter/models', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ apiKey }),
     })
 
     if (!response.ok) {
-      const error = await response.text()
-      throw new Error(error || 'Unable to fetch models')
+      throw new Error(await readErrorMessage(response, 'Unable to fetch models'))
     }
 
     return (await response.json()) as { data: ModelSummary[] }
   } catch (backendError) {
+    if (!(backendError instanceof ApiNetworkError)) {
+      throw backendError
+    }
+
     const response = await fetch('https://openrouter.ai/api/v1/models', {
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -55,10 +99,7 @@ export async function fetchOpenRouterModels(apiKey: string) {
     })
 
     if (!response.ok) {
-      const fallbackError = await response.text()
-      throw new Error(
-        fallbackError || (backendError instanceof Error ? backendError.message : 'Unable to fetch models'),
-      )
+      throw new Error(await readErrorMessage(response, backendError.message || 'Unable to fetch models'))
     }
 
     const payload = (await response.json()) as { data?: Array<Record<string, unknown>> }
@@ -67,22 +108,21 @@ export async function fetchOpenRouterModels(apiKey: string) {
 }
 
 export async function fetchFileTree(sessionId: string) {
-  const response = await fetch(`${API_BASE_PATH}/sessions/${sessionId}/files`)
+  const response = await fetchFromApi(`/sessions/${sessionId}/files`)
   if (!response.ok) {
-    throw new Error('Unable to load file tree')
+    throw new Error(await readErrorMessage(response, 'Unable to load file tree'))
   }
   return (await response.json()) as { root: FileNode[] }
 }
 
 export async function fetchFileContent(sessionId: string, path: string) {
-  const response = await fetch(`${API_BASE_PATH}/sessions/${sessionId}/file-content`, {
+  const response = await fetchFromApi(`/sessions/${sessionId}/file-content`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ path }),
   })
   if (!response.ok) {
-    const error = await response.text()
-    throw new Error(error || 'Unable to load file content')
+    throw new Error(await readErrorMessage(response, 'Unable to load file content'))
   }
   return (await response.json()) as { path: string; content: string }
 }
