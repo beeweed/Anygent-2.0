@@ -25,6 +25,15 @@ export type TranscriptItem =
       phase: string
     }
 
+export type ChatSession = {
+  id: string
+  sessionId: string
+  title: string
+  createdAt: number
+  updatedAt: number
+  transcript: TranscriptItem[]
+}
+
 export type StreamEventMap = {
   status: { label: string; phase: string }
   iteration: { current: number; max: number }

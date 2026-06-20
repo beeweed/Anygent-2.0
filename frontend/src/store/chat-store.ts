@@ -28,6 +28,8 @@ type ChatState = {
   finishStream: () => void
   setError: (message: string | null) => void
   resetAssistantStreamingState: () => void
+  setSessionId: (id: string) => void
+  loadTranscript: (transcript: TranscriptItem[]) => void
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -94,4 +96,17 @@ export const useChatStore = create<ChatState>((set) => ({
           : item,
       ),
     })),
+  setSessionId: (id) => set({ sessionId: id }),
+  loadTranscript: (transcript) =>
+    set({
+      transcript,
+      fileTree: [],
+      selectedFilePath: null,
+      selectedFileContent: '',
+      iteration: 0,
+      maxIterations: 1000,
+      isStreaming: false,
+      error: null,
+      activeStatus: null,
+    }),
 }))
