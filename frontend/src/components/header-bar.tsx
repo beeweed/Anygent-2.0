@@ -1,43 +1,64 @@
 import { GearIcon } from '@radix-ui/react-icons'
 
 export function HeaderBar({
+  title,
   iteration,
   maxIterations,
   ready,
   onOpenSettings,
+  onGoHome,
+  showHomeShortcut,
 }: {
+  title: string
   iteration: number
   maxIterations: number
   ready: boolean
   onOpenSettings: () => void
+  onGoHome: () => void
+  showHomeShortcut: boolean
 }) {
   return (
-    <header className="sticky top-0 z-20 border-b border-white/8 bg-black/80 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-[1800px] items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-        <div className="flex min-w-0 items-center gap-4">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.36em] text-zinc-500">agent studio</p>
-            <h1 className="truncate text-lg font-semibold text-zinc-50 sm:text-xl">Autonomous sandbox file agent</h1>
-          </div>
-          <div className="hidden h-8 w-px bg-white/8 sm:block" />
-          <div className="hidden items-center gap-3 sm:flex">
-            <div className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5 text-xs text-zinc-300">
-              iteration <span className="text-zinc-50">{iteration}</span> / {maxIterations}
-            </div>
-            <div className={`rounded-full px-3 py-1.5 text-xs ${ready ? 'bg-emerald-500/12 text-emerald-300' : 'bg-amber-500/12 text-amber-300'}`}>
-              {ready ? 'ready' : 'settings required'}
-            </div>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={onOpenSettings}
-          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-zinc-100 transition hover:bg-white/[0.08]"
-        >
-          <GearIcon className="h-4 w-4" />
-          Settings
-        </button>
+    <header className="flex h-12 shrink-0 items-center gap-2 border-b border-neutral-800/50 px-4">
+      <button
+        type="button"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-500 transition hover:bg-neutral-800 hover:text-neutral-300 md:hidden"
+        aria-label="Open navigation"
+      >
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      <button
+        type="button"
+        onClick={onGoHome}
+        className={`hidden h-8 w-8 items-center justify-center rounded-md transition md:flex ${
+          showHomeShortcut
+            ? 'text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200'
+            : 'pointer-events-none text-neutral-700'
+        }`}
+        aria-label="Go to home"
+      >
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+        </svg>
+      </button>
+
+      <div className="min-w-0">
+        <span className="block truncate text-sm font-medium text-neutral-200">{title}</span>
+        <span className="sr-only">
+          iteration {iteration} of {maxIterations}; {ready ? 'ready' : 'settings required'}
+        </span>
       </div>
+
+      <button
+        type="button"
+        onClick={onOpenSettings}
+        className="ml-auto flex h-8 w-8 items-center justify-center rounded-md text-neutral-400 transition hover:bg-neutral-800 hover:text-neutral-200"
+        aria-label="Open settings"
+      >
+        <GearIcon className="h-4 w-4" />
+      </button>
     </header>
   )
 }

@@ -44,3 +44,4 @@ Build a production-grade autonomous coding agent web application that uses OpenR
 | Chat agent orchestration | done | specs/chat-agent-orchestration/document.md |
 | File tree and sandbox integration | done | specs/file-tree-and-sandbox/document.md |
 | Streaming chat UI | done | specs/streaming-chat-ui/document.md |
+| Two-page UI redesign | done | specs/two-page-ui-redesign/document.md |

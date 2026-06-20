@@ -48,7 +48,7 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
                       value={settings.openrouterApiKey}
                       onChange={(event) => updateSettings({ openrouterApiKey: event.target.value })}
                       placeholder="sk-or-v1-..."
-                      className="h-12 rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-zinc-100 outline-none transition focus:border-[#f97316]/60"
+                      className="h-12 rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-zinc-100 outline-none transition focus:border-neutral-600"
                     />
                   </label>
 
@@ -67,7 +67,7 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
                     <select
                       value={settings.selectedModel}
                       onChange={(event) => updateSettings({ selectedModel: event.target.value })}
-                      className="h-12 rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-zinc-100 outline-none transition focus:border-[#f97316]/60"
+                      className="h-12 rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-zinc-100 outline-none transition focus:border-neutral-600"
                     >
                       <option value="">Select a model</option>
                       {availableModels.map((model) => (
@@ -98,7 +98,7 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
                       value={settings.e2bApiKey}
                       onChange={(event) => updateSettings({ e2bApiKey: event.target.value })}
                       placeholder="e2b_..."
-                      className="h-12 rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-zinc-100 outline-none transition focus:border-[#f97316]/60"
+                      className="h-12 rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-zinc-100 outline-none transition focus:border-neutral-600"
                     />
                   </label>
 
@@ -109,7 +109,7 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
                       value={settings.e2bTemplateId}
                       onChange={(event) => updateSettings({ e2bTemplateId: event.target.value })}
                       placeholder="Optional template id"
-                      className="h-12 rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-zinc-100 outline-none transition focus:border-[#f97316]/60"
+                      className="h-12 rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-zinc-100 outline-none transition focus:border-neutral-600"
                     />
                   </label>
 

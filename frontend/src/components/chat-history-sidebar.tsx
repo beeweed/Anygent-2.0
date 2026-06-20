@@ -1,138 +1,102 @@
 import * as ScrollArea from '@radix-ui/react-scroll-area'
-import { Cross2Icon, PlusIcon, ChatBubbleIcon } from '@radix-ui/react-icons'
-import { useState } from 'react'
+import { Cross2Icon } from '@radix-ui/react-icons'
 
-import { fetchFileTree } from '@/lib/api'
-import { useChatStore } from '@/store/chat-store'
 import { useHistoryStore } from '@/store/history-store'
+import type { ChatSession } from '@/types/chat'
 
-export function ChatHistorySidebar() {
-  const [collapsed, setCollapsed] = useState(false)
+export function ChatHistorySidebar({
+  onGoHome,
+  onSelectChat,
+}: {
+  onGoHome: () => void
+  onSelectChat: (chat: ChatSession) => void
+}) {
   const chats = useHistoryStore((state) => state.chats)
   const activeChatId = useHistoryStore((state) => state.activeChatId)
-  const setActiveChat = useHistoryStore((state) => state.setActiveChat)
   const deleteChat = useHistoryStore((state) => state.deleteChat)
-  const createChat = useHistoryStore((state) => state.createChat)
-  const setSessionId = useChatStore((state) => state.setSessionId)
-  const loadTranscript = useChatStore((state) => state.loadTranscript)
-  const setFileTree = useChatStore((state) => state.setFileTree)
-
-  function handleSelectChat(chat: (typeof chats)[0]) {
-    setActiveChat(chat.id)
-    setSessionId(chat.sessionId)
-    loadTranscript(chat.transcript)
-
-    void fetchFileTree(chat.sessionId)
-      .then((res) => setFileTree(res.root))
-      .catch(() => setFileTree([]))
-  }
-
-  function handleNewChat() {
-    const newId = crypto.randomUUID()
-    setSessionId(newId)
-    loadTranscript([])
-    setFileTree([])
-    createChat(newId)
-  }
 
   function formatDate(ts: number) {
-    const d = new Date(ts)
+    const date = new Date(ts)
     const now = new Date()
-    const diff = now.getTime() - d.getTime()
-    if (diff < 60000) return 'Just now'
-    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`
-    return d.toLocaleDateString()
-  }
+    const diff = now.getTime() - date.getTime()
 
-  if (collapsed) {
-    return (
-      <aside className="flex w-12 flex-col items-center border-r border-white/8 bg-black/60 py-3">
-        <button
-          type="button"
-          onClick={() => setCollapsed(false)}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-zinc-500 transition hover:bg-white/[0.06] hover:text-zinc-200"
-          title="Open chat history"
-        >
-          <ChatBubbleIcon className="h-4 w-4" />
-        </button>
-      </aside>
-    )
+    if (diff < 60_000) return 'Just now'
+    if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`
+    if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`
+    return date.toLocaleDateString()
   }
 
   return (
-    <aside className="flex w-64 flex-col border-r border-white/8 bg-black/60">
-      <div className="flex items-center justify-between border-b border-white/8 px-4 py-3">
-        <p className="text-[11px] uppercase tracking-[0.32em] text-zinc-500">history</p>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={handleNewChat}
-            className="flex h-7 w-7 items-center justify-center rounded-full text-zinc-500 transition hover:bg-white/[0.06] hover:text-zinc-200"
-            title="New conversation"
-          >
-            <PlusIcon className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => setCollapsed(true)}
-            className="flex h-7 w-7 items-center justify-center rounded-full text-zinc-500 transition hover:bg-white/[0.06] hover:text-zinc-200"
-            title="Collapse sidebar"
-          >
-            <Cross2Icon className="h-3.5 w-3.5" />
-          </button>
+    <aside className="hidden h-screen w-[260px] flex-col overflow-hidden md:flex">
+      <button
+        type="button"
+        onClick={onGoHome}
+        className="mt-2 flex h-12 shrink-0 items-center px-6 text-left transition hover:opacity-90"
+      >
+        <div className="flex items-center">
+          <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm bg-neutral-200 text-[10px] font-bold text-black">
+            A
+          </div>
+          <span className="ml-2 whitespace-nowrap text-sm font-medium text-neutral-100">assistant-ui</span>
         </div>
-      </div>
+      </button>
 
-      <ScrollArea.Root className="min-h-0 flex-1">
-        <ScrollArea.Viewport className="h-full px-2 py-3">
-          {chats.length === 0 ? (
-            <div className="px-2 py-8 text-center text-xs leading-6 text-zinc-500">
-              No conversations yet.<br />
-              Send a message to start.
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {chats.map((chat) => (
-                <button
-                  key={chat.id}
-                  type="button"
-                  onClick={() => handleSelectChat(chat)}
-                  className={`group relative flex w-full flex-col gap-0.5 rounded-2xl px-3 py-2.5 text-left text-sm transition ${
-                    activeChatId === chat.id
-                      ? 'bg-[#f97316]/10 text-zinc-100'
-                      : 'text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200'
-                  }`}
-                >
-                  <span className="truncate text-[13px] font-medium leading-tight">
-                    {chat.title}
-                  </span>
-                  <span className="text-[11px] text-zinc-500">
-                    {formatDate(chat.updatedAt)}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      deleteChat(chat.id)
-                      if (activeChatId === chat.id) {
-                        handleNewChat()
-                      }
-                    }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-zinc-600 opacity-0 transition hover:text-rose-400 group-hover:opacity-100"
-                    title="Delete conversation"
-                  >
-                    <Cross2Icon className="h-3 w-3" />
-                  </button>
-                </button>
-              ))}
-            </div>
-          )}
-        </ScrollArea.Viewport>
-        <ScrollArea.Scrollbar orientation="vertical" className="flex w-2 touch-none bg-transparent p-0.5">
-          <ScrollArea.Thumb className="relative flex-1 rounded-full bg-white/10" />
-        </ScrollArea.Scrollbar>
-      </ScrollArea.Root>
+      <div className="flex-1 overflow-hidden px-3 pb-3 pt-1">
+        <div className="mb-2 px-3 text-xs font-medium text-neutral-400">Recent Chats</div>
+        <ScrollArea.Root className="h-full overflow-hidden">
+          <ScrollArea.Viewport className="h-full pr-1">
+            {chats.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-neutral-800 px-3 py-4 text-sm text-neutral-500">
+                Your recent conversations will appear here.
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1">
+                {chats.map((chat) => {
+                  const isActive = chat.id === activeChatId
+
+                  return (
+                    <div key={chat.id} className="group relative">
+                      <button
+                        type="button"
+                        onClick={() => onSelectChat(chat)}
+                        className={`w-full rounded-lg px-3 py-2 pr-8 text-left text-sm transition ${
+                          isActive
+                            ? 'bg-neutral-900/80 font-medium text-neutral-200'
+                            : 'text-neutral-400 hover:bg-neutral-900/60 hover:text-neutral-200'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <svg className="h-3.5 w-3.5 shrink-0 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                          </svg>
+                          <span className="truncate">{chat.title}</span>
+                        </div>
+                        <div className="mt-1 truncate pl-5 text-[11px] text-neutral-500">{formatDate(chat.updatedAt)}</div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          deleteChat(chat.id)
+                          if (isActive) {
+                            onGoHome()
+                          }
+                        }}
+                        className="absolute right-2 top-1/2 hidden -translate-y-1/2 rounded-full p-1 text-neutral-600 transition hover:bg-neutral-800 hover:text-neutral-200 group-hover:block"
+                        aria-label={`Delete ${chat.title}`}
+                      >
+                        <Cross2Icon className="h-3 w-3" />
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </ScrollArea.Viewport>
+          <ScrollArea.Scrollbar orientation="vertical" className="flex w-2.5 touch-none bg-transparent p-0.5">
+            <ScrollArea.Thumb className="relative flex-1 rounded-full bg-neutral-800" />
+          </ScrollArea.Scrollbar>
+        </ScrollArea.Root>
+      </div>
     </aside>
   )
 }

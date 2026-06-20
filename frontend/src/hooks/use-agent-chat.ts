@@ -27,13 +27,13 @@ export function useAgentChat() {
   const updateTitle = useHistoryStore((state) => state.updateTitle)
   const chatIdRef = useRef<string | null>(null)
 
-  function saveTranscript() {
+  const saveTranscript = useCallback(() => {
     const currentId = chatIdRef.current
     if (currentId) {
       const transcript = useChatStore.getState().transcript
       updateTranscript(currentId, transcript)
     }
-  }
+  }, [updateTranscript])
 
   const sendMessage = useCallback(
     async (message: string) => {
@@ -120,13 +120,13 @@ export function useAgentChat() {
       pushToolChip,
       resetAssistantStreamingState,
       sessionId,
+      saveTranscript,
       setError,
       setFileTree,
       setIteration,
       setStatus,
       settings,
       startTurn,
-      updateTranscript,
       updateTitle,
     ],
   )

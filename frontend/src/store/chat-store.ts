@@ -18,6 +18,8 @@ type ChatState = {
   maxIterations: number
   isStreaming: boolean
   error: string | null
+  composerDraft: string
+  queuedPrompt: string | null
   startTurn: (message: string) => void
   appendToken: (text: string) => void
   pushToolChip: (payload: { label: string; name: string; path: string; isError?: boolean }) => void
@@ -30,9 +32,12 @@ type ChatState = {
   resetAssistantStreamingState: () => void
   setSessionId: (id: string) => void
   loadTranscript: (transcript: TranscriptItem[]) => void
+  setComposerDraft: (value: string) => void
+  queuePrompt: (value: string) => void
+  consumeQueuedPrompt: () => string | null
 }
 
-export const useChatStore = create<ChatState>((set) => ({
+export const useChatStore = create<ChatState>((set, get) => ({
   sessionId: crypto.randomUUID(),
   transcript: [],
   activeStatus: null,
@@ -43,6 +48,8 @@ export const useChatStore = create<ChatState>((set) => ({
   maxIterations: 1000,
   isStreaming: false,
   error: null,
+  composerDraft: '',
+  queuedPrompt: null,
   startTurn: (message) =>
     set((state) => ({
       transcript: [...state.transcript, { id: id('user'), kind: 'user', content: message }],
@@ -51,6 +58,7 @@ export const useChatStore = create<ChatState>((set) => ({
       maxIterations: 1000,
       isStreaming: true,
       error: null,
+      composerDraft: '',
     })),
   appendToken: (text) =>
     set((state) => {
@@ -108,5 +116,14 @@ export const useChatStore = create<ChatState>((set) => ({
       isStreaming: false,
       error: null,
       activeStatus: null,
+      composerDraft: '',
+      queuedPrompt: null,
     }),
+  setComposerDraft: (value) => set({ composerDraft: value }),
+  queuePrompt: (value) => set({ queuedPrompt: value, composerDraft: value }),
+  consumeQueuedPrompt: () => {
+    const queuedPrompt = get().queuedPrompt
+    set({ queuedPrompt: null })
+    return queuedPrompt
+  },
 }))
