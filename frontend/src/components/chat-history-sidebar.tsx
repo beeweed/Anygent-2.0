@@ -27,7 +27,7 @@ export function ChatHistorySidebar({
   }
 
   return (
-    <aside className="hidden h-screen w-[260px] flex-col overflow-hidden md:flex">
+    <aside className="flex h-screen w-[280px] shrink-0 flex-col overflow-hidden border-r border-neutral-900 bg-neutral-950/95 backdrop-blur-xl">
       <button
         type="button"
         onClick={onGoHome}
@@ -42,7 +42,17 @@ export function ChatHistorySidebar({
       </button>
 
       <div className="flex-1 overflow-hidden px-3 pb-3 pt-1">
-        <div className="mb-2 px-3 text-xs font-medium text-neutral-400">Recent Chats</div>
+        <div className="mb-3 flex items-center justify-between gap-3 px-3">
+          <div className="text-xs font-medium uppercase tracking-[0.18em] text-neutral-400">Recent Chats</div>
+          <button
+            type="button"
+            onClick={onGoHome}
+            className="inline-flex h-8 items-center justify-center rounded-full border border-neutral-800 bg-neutral-900 px-3 text-xs font-medium text-neutral-200 transition hover:border-neutral-700 hover:bg-neutral-800"
+          >
+            <span className="mr-1 text-sm leading-none">+</span>
+            New chat
+          </button>
+        </div>
         <ScrollArea.Root className="h-full overflow-hidden">
           <ScrollArea.Viewport className="h-full pr-1">
             {chats.length === 0 ? (

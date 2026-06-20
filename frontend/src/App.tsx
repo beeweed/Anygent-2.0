@@ -124,13 +124,11 @@ function App() {
       <div className="flex flex-1 flex-col overflow-hidden p-2 md:pl-0">
         <div className="flex flex-1 flex-col overflow-hidden rounded-[18px] border border-neutral-800/60 bg-neutral-900 shadow-[0_16px_60px_rgba(0,0,0,0.42)]">
           <HeaderBar
-            title={pathname === APP_ROUTES.home ? 'Home' : activeChat?.title ?? 'New conversation'}
+            title={pathname === APP_ROUTES.chat ? activeChat?.title ?? 'New conversation' : ''}
             iteration={iteration}
             maxIterations={maxIterations}
             ready={ready}
             onOpenSettings={() => setSettingsOpen(true)}
-            onGoHome={resetToHome}
-            showHomeShortcut={pathname === APP_ROUTES.chat}
           />
           <ChatPanel mode={pathname === APP_ROUTES.home ? 'home' : 'chat'} ready={ready} onNavigate={navigate} />
         </div>
