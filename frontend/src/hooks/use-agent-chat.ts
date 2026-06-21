@@ -14,6 +14,7 @@ export function useAgentChat() {
     startTurn,
     appendToken,
     pushToolChip,
+    updateToolStatus,
     setStatus,
     setFileTree,
     setIteration,
@@ -80,12 +81,15 @@ export function useAgentChat() {
                 break
               case 'tool_call':
                 resetAssistantStreamingState()
-                pushToolChip({ ...(data as StreamEventMap['tool_call']) })
+                pushToolChip({ ...(data as StreamEventMap['tool_call']), toolCallId: (data as StreamEventMap['tool_call']).toolCallId })
                 saveTranscript()
                 break
-              case 'tool_result':
+              case 'tool_result': {
+                const result = data as StreamEventMap['tool_result']
+                updateToolStatus(result.toolCallId, result.isError ? 'error' : 'success', result.path)
                 saveTranscript()
                 break
+              }
               case 'files':
                 setFileTree((data as StreamEventMap['files']).tree)
                 break
@@ -118,6 +122,7 @@ export function useAgentChat() {
       createChat,
       finishStream,
       pushToolChip,
+      updateToolStatus,
       resetAssistantStreamingState,
       sessionId,
       setError,

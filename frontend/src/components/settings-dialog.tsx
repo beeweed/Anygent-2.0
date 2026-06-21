@@ -1,138 +1,198 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import * as ScrollArea from '@radix-ui/react-scroll-area'
-import * as Separator from '@radix-ui/react-separator'
-import { Cross2Icon, ReloadIcon } from '@radix-ui/react-icons'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import { useSettingsStore } from '@/store/settings-store'
 
 export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const { settings, updateSettings, availableModels, loadModels, modelsStatus, modelsError } = useSettingsStore()
+  const [modelSearch, setModelSearch] = useState('')
 
   useEffect(() => {
     if (open && settings.openrouterApiKey && availableModels.length === 0) {
       void loadModels()
     }
+    if (!open) {
+      setModelSearch('')
+    }
   }, [availableModels.length, loadModels, open, settings.openrouterApiKey])
+
+  const filteredModels = availableModels.filter(
+    (m) =>
+      !modelSearch ||
+      m.name.toLowerCase().includes(modelSearch.toLowerCase()) ||
+      m.id.toLowerCase().includes(modelSearch.toLowerCase()),
+  )
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[min(92vw,780px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[28px] border border-white/10 bg-[#090909] shadow-[0_24px_80px_rgba(0,0,0,0.65)]">
-          <div className="flex items-center justify-between border-b border-white/8 px-6 py-5">
-            <div>
-              <Dialog.Title className="text-lg font-semibold text-zinc-50">Provider and sandbox settings</Dialog.Title>
-              <Dialog.Description className="mt-1 text-sm text-zinc-400">
-                OpenRouter supplies models. E2B provides the isolated filesystem sandbox.
-              </Dialog.Description>
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[min(92vw,500px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-white/10 bg-[#2d2d2d] shadow-2xl">
+          <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20">
+                <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                </svg>
+              </div>
+              <div>
+                <Dialog.Title className="text-lg font-semibold text-foreground">Settings</Dialog.Title>
+                <Dialog.Description className="text-xs text-muted-foreground">Configure your agent</Dialog.Description>
+              </div>
             </div>
-            <Dialog.Close className="rounded-full border border-white/10 p-2 text-zinc-400 transition hover:bg-white/[0.06] hover:text-zinc-100">
-              <Cross2Icon className="h-4 w-4" />
+            <Dialog.Close className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
             </Dialog.Close>
           </div>
 
-          <ScrollArea.Root className="max-h-[75vh] overflow-hidden">
-            <ScrollArea.Viewport className="max-h-[75vh] px-6 py-6">
-              <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-                <section className="space-y-5">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.34em] text-zinc-500">model provider</p>
-                    <h3 className="mt-2 text-base font-medium text-zinc-100">OpenRouter</h3>
+          <ScrollArea.Root className="max-h-[70vh] overflow-hidden">
+            <ScrollArea.Viewport className="max-h-[70vh] px-6 py-6">
+              <div className="space-y-6">
+                {/* API Key Section */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                    </svg>
+                    <label className="text-sm font-medium text-foreground">OpenRouter API Key</label>
                   </div>
-
-                  <label className="grid gap-2 text-sm text-zinc-200">
-                    <span>OpenRouter API key</span>
+                  <div className="bg-[#363638] rounded-xl px-4 py-3">
                     <input
                       type="password"
                       value={settings.openrouterApiKey}
-                      onChange={(event) => updateSettings({ openrouterApiKey: event.target.value })}
+                      onChange={(e) => updateSettings({ openrouterApiKey: e.target.value })}
                       placeholder="sk-or-v1-..."
-                      className="h-12 rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-zinc-100 outline-none transition focus:border-[#f97316]/60"
+                      className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
                     />
-                  </label>
+                  </div>
+                  <a
+                    href="https://openrouter.ai/keys"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                  >
+                    Get your API key
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                  </a>
+                </div>
 
-                  <div className="grid gap-3">
-                    <div className="flex items-center justify-between gap-4">
-                      <label className="text-sm text-zinc-200">Model</label>
-                      <button
-                        type="button"
-                        onClick={() => void loadModels()}
-                        className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-xs text-zinc-200 transition hover:bg-white/[0.06]"
-                      >
-                        <ReloadIcon className={`h-3.5 w-3.5 ${modelsStatus === 'loading' ? 'animate-spin' : ''}`} />
-                        Refresh models
-                      </button>
-                    </div>
-                    <select
-                      value={settings.selectedModel}
-                      onChange={(event) => updateSettings({ selectedModel: event.target.value })}
-                      className="h-12 rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-zinc-100 outline-none transition focus:border-[#f97316]/60"
-                    >
-                      <option value="">Select a model</option>
-                      {availableModels.map((model) => (
-                        <option key={model.id} value={model.id}>
-                          {model.name} · {model.id}
-                        </option>
-                      ))}
-                    </select>
-                    {modelsError ? <p className="text-sm text-rose-300">{modelsError}</p> : null}
-                    {modelsStatus === 'ready' && availableModels.length > 0 ? (
-                      <div className="rounded-2xl border border-white/8 bg-white/[0.02] p-4 text-xs text-zinc-400">
-                        Loaded {availableModels.length} models from OpenRouter.
+                {/* Model Selection */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                    <label className="text-sm font-medium text-foreground">Select Model</label>
+                  </div>
+
+                  <div className="relative">
+                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <input
+                      type="text"
+                      value={modelSearch}
+                      onChange={(e) => setModelSearch(e.target.value)}
+                      placeholder="Search models..."
+                      className="w-full bg-[#363638] rounded-lg pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    />
+                  </div>
+
+                  <div className="bg-[#363638] rounded-xl max-h-[280px] overflow-y-auto p-2 space-y-1">
+                    {modelsStatus === 'loading' ? (
+                      <div className="p-3 text-xs text-muted-foreground text-center">Loading models...</div>
+                    ) : modelsError ? (
+                      <div className="p-3 text-xs text-red-400 text-center">{modelsError}</div>
+                    ) : filteredModels.length === 0 ? (
+                      <div className="p-3 text-xs text-muted-foreground text-center">
+                        {availableModels.length === 0 ? 'Enter an API key and refresh models.' : 'No models match your search.'}
                       </div>
-                    ) : null}
+                    ) : (
+                      filteredModels.map((model) => {
+                        const isSelected = settings.selectedModel === model.id
+                        return (
+                          <button
+                            key={model.id}
+                            type="button"
+                            onClick={() => updateSettings({ selectedModel: model.id })}
+                            className={`flex items-center justify-between w-full p-3 rounded-xl cursor-pointer transition-colors ${
+                              isSelected ? 'bg-primary/15 border border-primary/30' : 'hover:bg-white/5'
+                            }`}
+                          >
+                            <div className="text-left">
+                              <div className="text-sm font-medium text-foreground">{model.name}</div>
+                              <div className="text-[10px] text-muted-foreground">{model.id}</div>
+                            </div>
+                            {isSelected && (
+                              <svg className="w-5 h-5 text-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/>
+                              </svg>
+                            )}
+                          </button>
+                        )
+                      })
+                    )}
                   </div>
-                </section>
 
-                <section className="space-y-5">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.34em] text-zinc-500">sandbox runtime</p>
-                    <h3 className="mt-2 text-base font-medium text-zinc-100">E2B</h3>
+                  <button
+                    type="button"
+                    onClick={() => void loadModels()}
+                    className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                  >
+                    <svg className={`w-3 h-3 ${modelsStatus === 'loading' ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    Refresh models
+                  </button>
+                </div>
+
+                {/* E2B Section */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <label className="text-sm font-medium text-foreground">E2B Sandbox</label>
                   </div>
-
-                  <label className="grid gap-2 text-sm text-zinc-200">
-                    <span>E2B API key</span>
+                  <div className="bg-[#363638] rounded-xl px-4 py-3">
                     <input
                       type="password"
                       value={settings.e2bApiKey}
-                      onChange={(event) => updateSettings({ e2bApiKey: event.target.value })}
+                      onChange={(e) => updateSettings({ e2bApiKey: e.target.value })}
                       placeholder="e2b_..."
-                      className="h-12 rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-zinc-100 outline-none transition focus:border-[#f97316]/60"
+                      className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
                     />
-                  </label>
-
-                  <label className="grid gap-2 text-sm text-zinc-200">
-                    <span>Custom sandbox template id</span>
+                  </div>
+                  <div className="bg-[#363638] rounded-xl px-4 py-3">
                     <input
                       type="text"
                       value={settings.e2bTemplateId}
-                      onChange={(event) => updateSettings({ e2bTemplateId: event.target.value })}
+                      onChange={(e) => updateSettings({ e2bTemplateId: e.target.value })}
                       placeholder="Optional template id"
-                      className="h-12 rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-zinc-100 outline-none transition focus:border-[#f97316]/60"
+                      className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
                     />
-                  </label>
-
-                  <Separator.Root className="h-px bg-white/8" />
-
-                  <div className="rounded-[24px] border border-white/8 bg-gradient-to-br from-white/[0.04] to-white/[0.01] p-5 text-sm text-zinc-300">
-                    <p className="font-medium text-zinc-100">Session behavior</p>
-                    <ul className="mt-3 space-y-2 text-zinc-400">
-                      <li>Sandbox is created automatically on the first chat message.</li>
-                      <li>Sandbox timeout is fixed to 1 hour.</li>
-                      <li>
-                        If <code className="font-mono text-zinc-200">VITE_BACKEND_URL</code> is unset, development requests use the Vite
-                        <code className="ml-1 font-mono text-zinc-200">/api</code> proxy to reach the local backend.
-                      </li>
-                    </ul>
                   </div>
-                </section>
+                </div>
               </div>
             </ScrollArea.Viewport>
-            <ScrollArea.Scrollbar orientation="vertical" className="flex w-2.5 touch-none bg-transparent p-0.5">
+            <ScrollArea.Scrollbar orientation="vertical" className="flex w-2 touch-none bg-transparent p-0.5">
               <ScrollArea.Thumb className="relative flex-1 rounded-full bg-white/10" />
             </ScrollArea.Scrollbar>
           </ScrollArea.Root>
+
+          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-white/10 bg-[#252525]">
+            <Dialog.Close className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors">
+              Cancel
+            </Dialog.Close>
+            <Dialog.Close className="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium shadow-md shadow-primary/20 hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/30 transition-all duration-200 active:scale-[0.98]">
+              Save Changes
+            </Dialog.Close>
+          </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

@@ -16,6 +16,9 @@ export type TranscriptItem =
       label: string
       name: string
       path: string
+      toolCallId: string
+      description?: string
+      status?: 'pending' | 'loading' | 'success' | 'error'
       isError?: boolean
     }
   | {

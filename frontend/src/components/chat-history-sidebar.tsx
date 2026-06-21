@@ -1,13 +1,10 @@
 import * as ScrollArea from '@radix-ui/react-scroll-area'
-import { Cross2Icon, PlusIcon, ChatBubbleIcon } from '@radix-ui/react-icons'
-import { useState } from 'react'
 
 import { fetchFileTree } from '@/lib/api'
 import { useChatStore } from '@/store/chat-store'
 import { useHistoryStore } from '@/store/history-store'
 
-export function ChatHistorySidebar() {
-  const [collapsed, setCollapsed] = useState(false)
+export function ChatHistorySidebar({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const chats = useHistoryStore((state) => state.chats)
   const activeChatId = useHistoryStore((state) => state.activeChatId)
   const setActiveChat = useHistoryStore((state) => state.setActiveChat)
@@ -21,7 +18,6 @@ export function ChatHistorySidebar() {
     setActiveChat(chat.id)
     setSessionId(chat.sessionId)
     loadTranscript(chat.transcript)
-
     void fetchFileTree(chat.sessionId)
       .then((res) => setFileTree(res.root))
       .catch(() => setFileTree([]))
@@ -35,6 +31,13 @@ export function ChatHistorySidebar() {
     createChat(newId)
   }
 
+  function handleDeleteChat(id: string) {
+    deleteChat(id)
+    if (activeChatId === id) {
+      handleNewChat()
+    }
+  }
+
   function formatDate(ts: number) {
     const d = new Date(ts)
     const now = new Date()
@@ -45,41 +48,32 @@ export function ChatHistorySidebar() {
     return d.toLocaleDateString()
   }
 
-  if (collapsed) {
-    return (
-      <aside className="flex w-12 flex-col items-center border-r border-white/8 bg-black/60 py-3">
-        <button
-          type="button"
-          onClick={() => setCollapsed(false)}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-zinc-500 transition hover:bg-white/[0.06] hover:text-zinc-200"
-          title="Open chat history"
-        >
-          <ChatBubbleIcon className="h-4 w-4" />
-        </button>
-      </aside>
-    )
-  }
+  if (!open) return null
 
   return (
-    <aside className="flex w-64 flex-col border-r border-white/8 bg-black/60">
-      <div className="flex items-center justify-between border-b border-white/8 px-4 py-3">
-        <p className="text-[11px] uppercase tracking-[0.32em] text-zinc-500">history</p>
+    <aside className="flex w-64 flex-col bg-[#232323] border-r border-white/10">
+      <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">History</p>
         <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={handleNewChat}
-            className="flex h-7 w-7 items-center justify-center rounded-full text-zinc-500 transition hover:bg-white/[0.06] hover:text-zinc-200"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
             title="New conversation"
           >
-            <PlusIcon className="h-4 w-4" />
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"/>
+            </svg>
           </button>
           <button
             type="button"
-            onClick={() => setCollapsed(true)}
-            className="flex h-7 w-7 items-center justify-center rounded-full text-zinc-500 transition hover:bg-white/[0.06] hover:text-zinc-200"
-            title="Collapse sidebar"
+            onClick={() => onOpenChange(false)}
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
+            title="Close sidebar"
           >
-            <Cross2Icon className="h-3.5 w-3.5" />
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/>
+            </svg>
           </button>
         </div>
       </div>
@@ -87,49 +81,48 @@ export function ChatHistorySidebar() {
       <ScrollArea.Root className="min-h-0 flex-1">
         <ScrollArea.Viewport className="h-full px-2 py-3">
           {chats.length === 0 ? (
-            <div className="px-2 py-8 text-center text-xs leading-6 text-zinc-500">
+            <div className="px-2 py-8 text-center text-xs text-muted-foreground">
               No conversations yet.<br />
               Send a message to start.
             </div>
           ) : (
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {chats.map((chat) => (
                 <button
                   key={chat.id}
                   type="button"
                   onClick={() => handleSelectChat(chat)}
-                  className={`group relative flex w-full flex-col gap-0.5 rounded-2xl px-3 py-2.5 text-left text-sm transition ${
+                  className={`group relative flex w-full flex-col gap-0.5 rounded-lg px-3 py-2 text-left text-sm transition ${
                     activeChatId === chat.id
-                      ? 'bg-[#f97316]/10 text-zinc-100'
-                      : 'text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200'
+                      ? 'bg-primary/15 text-primary'
+                      : 'text-muted-foreground hover:bg-white/5 hover:text-foreground'
                   }`}
                 >
                   <span className="truncate text-[13px] font-medium leading-tight">
                     {chat.title}
                   </span>
-                  <span className="text-[11px] text-zinc-500">
+                  <span className="text-[11px] text-muted-foreground">
                     {formatDate(chat.updatedAt)}
                   </span>
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation()
-                      deleteChat(chat.id)
-                      if (activeChatId === chat.id) {
-                        handleNewChat()
-                      }
+                      handleDeleteChat(chat.id)
                     }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-zinc-600 opacity-0 transition hover:text-rose-400 group-hover:opacity-100"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1 text-muted-foreground opacity-0 transition hover:text-red-400 group-hover:opacity-100"
                     title="Delete conversation"
                   >
-                    <Cross2Icon className="h-3 w-3" />
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
                   </button>
                 </button>
               ))}
             </div>
           )}
         </ScrollArea.Viewport>
-        <ScrollArea.Scrollbar orientation="vertical" className="flex w-2 touch-none bg-transparent p-0.5">
+        <ScrollArea.Scrollbar orientation="vertical" className="flex w-1.5 touch-none bg-transparent p-0.5">
           <ScrollArea.Thumb className="relative flex-1 rounded-full bg-white/10" />
         </ScrollArea.Scrollbar>
       </ScrollArea.Root>

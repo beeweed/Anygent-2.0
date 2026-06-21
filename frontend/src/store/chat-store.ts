@@ -20,7 +20,8 @@ type ChatState = {
   error: string | null
   startTurn: (message: string) => void
   appendToken: (text: string) => void
-  pushToolChip: (payload: { label: string; name: string; path: string; isError?: boolean }) => void
+  pushToolChip: (payload: { label: string; name: string; path: string; toolCallId: string; description?: string; isError?: boolean }) => void
+  updateToolStatus: (toolCallId: string, status: 'loading' | 'success' | 'error', path?: string) => void
   setStatus: (status: { label: string; phase: string } | null) => void
   setFileTree: (tree: FileNode[]) => void
   selectFile: (path: string | null, content?: string) => void
@@ -70,9 +71,17 @@ export const useChatStore = create<ChatState>((set) => ({
       if (last?.kind === 'assistant' && last.streaming) {
         last.streaming = false
       }
-      transcript.push({ id: id('tool'), kind: 'tool', ...payload })
+      transcript.push({ id: id('tool'), kind: 'tool', status: 'loading', ...payload })
       return { transcript }
     }),
+  updateToolStatus: (toolCallId, status, path) =>
+    set((state) => ({
+      transcript: state.transcript.map((item) =>
+        item.kind === 'tool' && item.toolCallId === toolCallId
+          ? { ...item, status, ...(path ? { path } : {}) }
+          : item,
+      ),
+    })),
   setStatus: (status) => set({ activeStatus: status }),
   setFileTree: (tree) => set({ fileTree: tree }),
   selectFile: (path, content = '') => set({ selectedFilePath: path, selectedFileContent: content }),
